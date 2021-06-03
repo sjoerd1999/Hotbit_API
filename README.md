@@ -13,7 +13,7 @@ Go to https://www.hotbit.io/
 
 -Refresh the page
 
--Search for the 'info?platform=web' request in the left bar, and select
+-Search for the 'info?platform=web' request in the left bar, and select it
 
 -Scroll down a bit and copy the full 'cookie' field (yellow)
 ![image](https://user-images.githubusercontent.com/35689067/120706985-0e6e4180-c4ba-11eb-956a-5d394677b161.png)
