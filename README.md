@@ -47,6 +47,13 @@ order = hotbit.post_order(price='38000', quantity='0.0001', market='BTC/USDT', s
 # Cancel an order, needs both market and order_id
 cancel = hotbit.cancel_order(market='BTC/USDT', order_id=23094920)
 
-#Cancel multiple orders at once
+# Cancel multiple orders at once
 hotbit.cancel_all(market='BTC/USDT', order_ids=[12342232, 45672345])
+
+# Get order history
+order_history = hotbit.order_history(start_time=1622066400, end_time=round(time.time()), page=1, page_size=20)
+
+# Get trade history (market can be left empty '' to get all trades for all symbols)
+trade_history = hotbit.trade_history(market='BTC/USDT', start_time=1622066400, end_time=round(time.time()), page=1, page_size=20)
+
 ```
