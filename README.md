@@ -29,7 +29,6 @@ from HotbitAPI import HotbitAPI
 hotbit = HotbitAPI()
 cookie = ''  # Insert your copied cookie in here
 hotbit.set_cookie(cookie)
-
 ```
 
 Methods:
@@ -55,5 +54,9 @@ order_history = hotbit.order_history(market='BTC/USDT', start_time=1622066400, e
 
 # Get trade history (market can be left empty '' to get all trades for all symbols)
 trade_history = hotbit.trade_history(market='BTC/USDT', start_time=1622066400, end_time=round(time.time()), page=1, page_size=20)
-
 ```
+
+## Some notes
+
+Market orders are not available on Hotbit, instead, you can put a limit order higher than the current price, which will fill it like a market order.
+Do note that setting limit orders above +800% is not allowed
