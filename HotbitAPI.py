@@ -83,5 +83,5 @@ class HotbitAPI(object):
             'numPerPage': page_size,
             'platform': 'web'
         }
-        return self.session.post(self.base_url + '/trade/history/query', data=data).text
+        return self.session.post(self.base_url + '/trade/history/query', data=data).json()
 
