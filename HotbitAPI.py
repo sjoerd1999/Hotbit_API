@@ -23,12 +23,18 @@ class HotbitAPI(object):
             'cookie': 'hotbit=' + key
         }
         self.session.headers.update(self.headers)
+        prec = self.session.get('https://api.hotbit.io/api/v1/market.list').json()['result']
+        self.precisions = {p['name']: [p['money_prec'], p['min_amount']] for p in prec}
 
     # POST a buy or sell order
     def post_order(self, price, quantity, market, side, type):
+        # Format the price and quantity properly so we don't get errors
+        prec = self.precisions[market.replace('/', '')]
+        price_ = str(round(price, prec[0]))
+        quantity_ = str(round(quantity, prec[1].index('1') - (prec[1].index('.') if '.' in prec[1] else len(prec[1]))))
         data = {
-          'price': price,
-          'quantity': quantity,
+          'price': price_,
+          'quantity': quantity_,
           'market': market,
           'side': side,
           'type': type,
@@ -101,3 +107,4 @@ class HotbitAPI(object):
             'numPerPage': page_size
         }
         return self.session.post(self.base_url + '/fund/history/query?platform=web', data=data).json()
+
