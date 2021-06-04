@@ -3,6 +3,7 @@ A funky Python implementation to get around Hotbits 'API is for market makers on
 
 ## Description
 Hotbit only has API-keys available for Market Makers at the moment: https://hotbit.zendesk.com/hc/en-us/articles/360042708374
+
 With some digging, parts of the API-funcionality can be reverse-engineered by looking at requests the website makes while interacting with the browser application
 
 ## How to setup
@@ -16,6 +17,7 @@ Go to https://www.hotbit.io/, make sure you're logged in
 -Search for the 'info?platform=web' request in the left bar, and select it
 
 -Go to the 'header' tab, scroll down a bit, and copy the code after 'hotbit=' in the 'cookie' field. 
+
 This will be your personal 'API' key, keep this private.
 ![image](https://user-images.githubusercontent.com/35689067/120799363-ec6ad280-c53e-11eb-88a9-1c16503bcfba.png)
 
@@ -27,6 +29,7 @@ Create an API instance:
 
 ```
 from HotbitAPI import HotbitAPI
+
 key = 'abc123abc123abc123' # Insert your key here
 hotbit = HotbitAPI(key)
 ```
