@@ -37,7 +37,7 @@ Methods:
 # Get info about the logged in user
 user_info = hotbit.get_user_info()
 
-# Get the free & locked users balances
+# Get the free & locked users balances !! Currently doesn't work, always returns 0, need to figure this out !!
 balances = hotbit.get_balances()
 
 # Post an order
