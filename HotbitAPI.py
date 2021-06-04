@@ -1,7 +1,7 @@
 import requests
 
 class HotbitAPI(object):
-    def __init__(self):
+    def __init__(self, key):
         # Requests session is about 15ms faster than normal requests
         self.session = requests.Session()
         self.base_url = 'https://www.hotbit.io/v1'
@@ -20,11 +20,8 @@ class HotbitAPI(object):
             'sec-fetch-dest': 'empty',
             'referer': 'https://www.hotbit.io/',
             'accept-language': 'nl-NL,nl;q=0.9,en-US;q=0.8,en;q=0.7,lb;q=0.6,de;q=0.5',
-            'cookie': ''
+            'cookie': 'hotbit=' + key
         }
-
-    def set_cookie(self, cookie):
-        self.headers['cookie'] = cookie
         self.session.headers.update(self.headers)
 
     # POST a buy or sell order
@@ -61,7 +58,8 @@ class HotbitAPI(object):
     def get_user_info(self):
         return self.session.get(self.base_url + '/info?platform=web').json()
 
-    def order_history(self, market, start_time, end_time, page, page_size):
+    # Get order history (does not include unfilled active orders)
+    def order_history(self, market, start_time, end_time, page=1, page_size=20):
         params = {
             'start_time': start_time,
             'end_time': end_time,
@@ -72,7 +70,8 @@ class HotbitAPI(object):
         }
         return self.session.get(self.base_url + '/order/history', params=params).json()
 
-    def trade_history(self, market, start_time, end_time, page, page_size):
+    # Get trade history
+    def trade_history(self, market, start_time, end_time, page=1, page_size=20):
         data = {
             'startTime': start_time,
             'endTime': end_time,
@@ -85,3 +84,20 @@ class HotbitAPI(object):
         }
         return self.session.post(self.base_url + '/trade/history/query', data=data).json()
 
+    # Get account deposit history
+    def deposit_history(self, page=1, page_size=20):
+        data = {
+            'categories': 1,
+            'pageNum': page,
+            'numPerPage': page_size
+        }
+        return self.session.post(self.base_url + '/fund/history/query?platform=web', data=data).json()
+
+    # Get account withdrawal history
+    def withdraw_history(self, page=1, page_size=20):
+        data = {
+            'categories': 2,
+            'pageNum': page,
+            'numPerPage': page_size
+        }
+        return self.session.post(self.base_url + '/fund/history/query?platform=web', data=data).json()
