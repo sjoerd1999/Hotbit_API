@@ -41,7 +41,7 @@ user_info = hotbit.get_user_info()
 balances = hotbit.get_balances()
 
 # Post an order
-order = hotbit.post_order(price='38000', quantity='0.0001', market='BTC/USDT', side='BUY', type='LIMIT')
+order = hotbit.post_order(price=38432, quantity=0.00013, market='BTC/USDT', side='BUY', type='LIMIT')
 
 # Cancel an order, needs both market and order_id
 cancel = hotbit.cancel_order(market='BTC/USDT', order_id=23094920)
