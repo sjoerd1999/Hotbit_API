@@ -83,19 +83,26 @@ class HotbitAPI(object):
 
 
     def get(self, stub, **kwargs):
-        return self.session.get(self.base_url + '/' + stub, **kwargs).json()
+        r = self.session.get(self.base_url + '/' + stub, **kwargs).json()
+
+        print('⚡️', r)
+        return r
 
 
     def post(self, stub, **kwargs):
         print('POST-ing to endpoint:', stub)
         print(kwargs)
 
-        return self.session.post(self.base_url + '/' + stub, **kwargs).json()
+        r = self.session.post(self.base_url + '/' + stub, **kwargs).json()
+
+        print('⚡️', r)
+        return r
 
 
     # POST a buy or sell order
     def post_order(self, price, quantity, market, side, type, dry_run=False):
-        price, quantity = float(price), float(quantity)
+        if '/' not in market:
+            market = market[:-4] + '/USDT'
 
         # Format the price and quantity properly so we don't get errors
         meta = self.symbol_meta[market.replace('/', '')]
@@ -108,7 +115,7 @@ class HotbitAPI(object):
         quantity_quantized = str(Decimal(quantity).quantize(min_amt))
 
         print('min_amt', min_amt)
-        print('quantity:', quantity, 'quantized by min_amt: ', min_amt, '->', quantity_quantized)
+        print('quantized by min_amt', min_amt, ', quantity', quantity, '->', quantity_quantized)
 
         # s = meta['min_amount']  # string
         # quantity = str(round(quantity, s.index('1') - (s.index('.') if '.' in s else len(s))))
@@ -123,15 +130,19 @@ class HotbitAPI(object):
           'use_discount': False
         }
 
+        glyph = {'BUY':'🟩', 'SELL':'🟥'}[side]
+
+        print(glyph, 'Placing order:')
+        print(data)
+
         if dry_run:
-            print(data)
             return None, None
 
-        response = self.post('order/create', data=data)
+        r = self.post('order/create', data=data)
 
-        order_id = response['Content']['id'] if response['Msg'] == 'success' else None
+        order_id = r['Content']['id'] if r['Msg'] == 'success' else None
 
-        return order_id, response
+        return order_id, r
 
     # Cancel an order (needs both market and order-id)
     def cancel_order(self, market, order_id):
@@ -139,6 +150,9 @@ class HotbitAPI(object):
             'market': market.replace('/', ''),
             'order_id': order_id
         }
+
+        print('❌ Cancelling order:')
+        print(data)
 
         return self.post('order/cancel', data=data)
 
@@ -153,6 +167,9 @@ class HotbitAPI(object):
             for id_ in order_ids
         ]
 
+        print('❌ ❌ Cancelling orders:')
+        print(data)
+
         return self.post('order/cancel_all', data=json.dumps(data))
 
 
@@ -165,7 +182,7 @@ class HotbitAPI(object):
             print('⛔️ Failed to fetch balances')
             return None
 
-        print(r)
+        print('⚡️', r)
 
         str2float = lambda D: { k : float(v)  for k, v in D.items() }
 
@@ -177,10 +194,17 @@ class HotbitAPI(object):
 
     # Get info about the user
     def get_user_info(self):
-        return self.session.get(self.base_url + '/info?platform=web').json()
+        print('🔸 Fetching userinfo')
+
+        r = self.get('/info')
+
+        print('⚡️', r)
+
+        return r
 
 
     # Get order history (does not include unfilled active orders)
+    # Scraped from https://www.hotbit.io/trade/orderhistory
     def order_history(self, market, start_time, end_time=None, page=1, page_size=20):
         params = {
             'start_time': int(start_time),
@@ -190,6 +214,9 @@ class HotbitAPI(object):
             'page_size': page_size,
             # 'platform': 'web'
         }
+
+        print('🔸 Fetching order history:')
+        print(params)
 
         r = self.get('order/history', params=params)
 
@@ -215,19 +242,22 @@ class HotbitAPI(object):
         return orders_dict
 
 
-    # Get trade history
+    # Scraped from https://www.hotbit.io/trade/order
     def trade_history(self, market, start_time, end_time=None, page=1, page_size=20):
         data = {
-            'start_time': int(start_time),
-            'end_time': int(end_time or time()),
+            'startTime': int(start_time),
+            'endTime': int(end_time or time()),
             'market': market.replace('/', ''),
-            'side': 0,  # TODO: 0 or 1?
+            'side': 0,
             'hideCanceled': True,
             'pageNum': page,
             'numPerPage': page_size,
-            # 'platform': 'web'
         }
-        return self.session.post(self.base_url + '/trade/history/query', data=data).json()
+
+        print('🔸 Fetching trade history:')
+        print(data)
+
+        return self.post('/trade/history/query', data=data)
 
 
     # Get account deposit history
@@ -237,7 +267,11 @@ class HotbitAPI(object):
             'pageNum': page,
             'numPerPage': page_size
         }
-        return self.session.post(self.base_url + '/fund/history/query?platform=web', data=data).json()
+
+        print('🔸 Fetching deposit history:')
+        print(data)
+
+        return self.post('/fund/history/query?platform=web', data=data)
 
 
     # Get account withdrawal history
@@ -247,7 +281,11 @@ class HotbitAPI(object):
             'pageNum': page,
             'numPerPage': page_size
         }
-        return self.session.post(self.base_url + '/fund/history/query?platform=web', data=data).json()
+
+        print('🔸 Fetching withdraw history:')
+        print(data)
+
+        return self.post('/fund/history/query?platform=web', data=data)
 
 
 # 🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥
@@ -299,7 +337,7 @@ if __name__ == '__main__':
     print('🔹 Precisions:', sorted(precs))
 
     print()
-    print('🔸 Fetching balances')
+    print('🔸 🔸 Fetching balances')
 
     balances = hotbit.get_balances()
     print('USDT balance:', balances['USDT']['available'])
@@ -309,40 +347,42 @@ if __name__ == '__main__':
 
 
     print()
+    print('🔸 🔸 withdraw / deposit history')
+
+    r = hotbit.deposit_history()
+    r = hotbit.withdraw_history()
+
     print()
-    print('🔸 Testing orders')
+    print()
+    print('🔸 🔸 Testing orders')
 
     min_qty = Decimal(hotbit.symbol_meta['BTCUSDT']['min_amount'])
 
     print()
     print('🟩  min_qty limit BUY on BTC/USDT with LOW price, so it will NOT be filled')
-    order_id__nonfill, response = hotbit.post_order(market='BTC/USDT', price=CURRENT_BTC_PRICE/2, quantity=min_qty, side='BUY', type='LIMIT')
+    order_id__nonfill, r = hotbit.post_order(market='BTC/USDT', price=CURRENT_BTC_PRICE/2, quantity=min_qty, side='BUY', type='LIMIT')
 
-    print(response)
-    print('...✅' if response['Msg'] == 'success' else '⛔️')
+    print('...✅' if r['Msg'] == 'success' else '⛔️')
 
     print()
     print('🟩  1/2 min_qty limit BUY on BTC/USDT (expect fail)')
-    no_order_id_as_fail, response = hotbit.post_order(market='BTC/USDT', price=CURRENT_BTC_PRICE/2, quantity=min_qty/2, side='BUY', type='LIMIT')
+    no_order_id_as_fail, r = hotbit.post_order(market='BTC/USDT', price=CURRENT_BTC_PRICE/2, quantity=min_qty/2, side='BUY', type='LIMIT')
 
-    print(response)
-    print('...✅' if response['Msg'] == 'error quantity' else '⛔️')
+    print('...✅' if r['Msg'] == 'error quantity' else '⛔️')
 
 
     print()
     print('🟩  Making a BUY order that WILL complete')
-    order_id__will_fill, response = hotbit.post_order(market='BTC/USDT', price=CURRENT_BTC_PRICE*2, quantity=min_qty, side='BUY', type='LIMIT')
+    order_id__will_fill, r = hotbit.post_order(market='BTC/USDT', price=CURRENT_BTC_PRICE*2, quantity=min_qty, side='BUY', type='LIMIT')
 
-    print(response)
-    print('...✅' if response['Msg'] == 'success' else '⛔️')
+    print('...✅' if r['Msg'] == 'success' else '⛔️')
 
 
     print()
     print('🟥  Making a SELL order that WILL complete')
-    order_id__will_fill, response = hotbit.post_order(market='BTC/USDT', price=CURRENT_BTC_PRICE*2, quantity=min_qty, side='BUY', type='LIMIT')
+    order_id__will_fill, r = hotbit.post_order(market='BTC/USDT', price=CURRENT_BTC_PRICE*2, quantity=min_qty, side='BUY', type='LIMIT')
 
-    print(response)
-    print('...✅' if response['Msg'] == 'success' else '⛔️')
+    print('...✅' if r['Msg'] == 'success' else '⛔️')
 
 
     print()
@@ -355,10 +395,9 @@ if __name__ == '__main__':
 
     print('Cancelling order that did not fill:', order_id__nonfill)
 
-    response = hotbit.cancel_order('BTC/USDT', order_id__nonfill)
-    print(response)
+    r = hotbit.cancel_order('BTC/USDT', order_id__nonfill)
 
-    print('...✅' if response['Msg'] == 'sucessfully cancelled' else '⛔️ Problem with cancel')
+    print('...✅' if r['Msg'] == 'sucessfully cancelled' else '⛔️ Problem with cancel')
 
     print()
     
@@ -370,8 +409,7 @@ if __name__ == '__main__':
     ids = []
     for side in ['BUY', 'SELL']:
         price = CURRENT_BTC_PRICE/2 if side == 'BUY' else CURRENT_BTC_PRICE*2
-        id_, response = hotbit.post_order(market='BTC/USDT', price=price, quantity=min_qty, side=side, type='LIMIT')
-        print(response)
+        id_, r = hotbit.post_order(market='BTC/USDT', price=price, quantity=min_qty, side=side, type='LIMIT')
         ids.append(id_)
 
     print()
@@ -380,20 +418,24 @@ if __name__ == '__main__':
 
     print('Cancelling ids:', ids)
 
-    response = hotbit.cancel_orders('BTC/USDT', ids)
-
-    print(response)
+    r = hotbit.cancel_orders('BTC/USDT', ids)
 
 
-    print('...✅ ' if response['Msg'] == 'all orders are sucessfully cancelled' else '⛔️')
+    print('...✅ ' if r['Msg'] == 'all orders are sucessfully cancelled' else '⛔️')
 
     print()
-    print('🔸 Order History, last minute')
+    print('🔸 🔸 Order History, last minute')
+
     r = hotbit.order_history('BTC/USDT', start_time=time()-60)
-    print(r)
 
     print()
     print('OrderIds:', r.keys())
 
     print()
     print('...✅ Found' if order_id__will_fill in r.keys() else '⛔️ Failed to find', 'first completed order in order_history')
+
+
+    print()
+    print('🔸 🔸 Trade History, last 30 minute')
+
+    r = hotbit.trade_history(market='', start_time=time()-60)
