@@ -1,51 +1,5 @@
 #!../env/bin/python
 
-# import httpx
-
-# BASE_URL = 'https://www.hotbit.io/v1/'
-
-# class HotBitAPI:
-#     def __init__(self, cookie):
-#         self.cookie = cookie
-
-
-#         r = self.get('market.list')
-
-#         print(r)
-
-
-#     def post(self, stub, data):
-#         headers = {
-#             'referer': 'https://www.hotbit.io/',
-#             'cookie': f'hotbit={self.cookie}',
-#         }
-
-#         r = httpx.post(BASE_URL + stub, headers=headers, data=data)
-
-#         print('Returned code: ', r.status_code)
-
-#         print(r.json())
-#         return r.json()
-
-#     def get(self, stub):
-#         headers = {
-#             'referer': 'https://www.hotbit.io/',
-#             'cookie': f'hotbit={self.cookie}',
-#         }
-
-#         r = httpx.get(BASE_URL + stub, headers=headers)
-
-#         print('Returned code: ', r.status_code)
-
-#         print(r.text)
-#         return r.text
-
-# HOTBIT_COOKIE = '05a...81e'
-
-# HotBitAPI(HOTBIT_COOKIE)
-
-# exit(0)
-
 import json
 
 from decimal import Decimal
@@ -82,6 +36,21 @@ class HotbitAPI(object):
         }
 
 
+    def get_tickers(self):
+        print('🔸 Fetching tickers')
+
+        tickers_list = self.session.get('https://api.hotbit.io/api/v1/allticker').json()['ticker']
+
+        # https://api.hotbit.io/api/v1/allticker
+        # {"buy": "0.00059861", "close": "0.00059862", "high": "0.00064", "last": "0.00059862", "low": "0.00055555", "open": "0.00059323", "sell": "0.00059862", "symbol": "ZEON_USDT", "vol": "106974320"}
+
+        tickers = {
+            u['symbol'].replace('_',''): u for u in tickers_list
+        }
+
+        return tickers
+
+
     def get(self, stub, **kwargs):
         r = self.session.get(self.base_url + '/' + stub, **kwargs).json()
 
@@ -101,6 +70,9 @@ class HotbitAPI(object):
 
     # POST a buy or sell order
     def post_order(self, price, quantity, market, side, type, dry_run=False):
+        glyph = {'BUY':'🟩', 'SELL':'🟥'}[side]
+        print(glyph, 'Placing order:')
+
         if '/' not in market:
             market = market[:-4] + '/USDT'
 
@@ -130,9 +102,6 @@ class HotbitAPI(object):
           'use_discount': False
         }
 
-        glyph = {'BUY':'🟩', 'SELL':'🟥'}[side]
-
-        print(glyph, 'Placing order:')
         print(data)
 
         if dry_run:
@@ -146,12 +115,12 @@ class HotbitAPI(object):
 
     # Cancel an order (needs both market and order-id)
     def cancel_order(self, market, order_id):
+        print('❌ Cancelling order:')
         data = {
             'market': market.replace('/', ''),
             'order_id': order_id
         }
 
-        print('❌ Cancelling order:')
         print(data)
 
         return self.post('order/cancel', data=data)
@@ -159,6 +128,7 @@ class HotbitAPI(object):
 
     # Cancel one or multiple orders (pass an id or a list of ids)
     def cancel_orders(self, market, order_ids):
+        print('❌ ❌ Cancelling orders:')
         data = [
             {
                 'market': market.replace('/', ''),
@@ -167,7 +137,6 @@ class HotbitAPI(object):
             for id_ in order_ids
         ]
 
-        print('❌ ❌ Cancelling orders:')
         print(data)
 
         return self.post('order/cancel_all', data=json.dumps(data))
@@ -175,6 +144,9 @@ class HotbitAPI(object):
 
     # Get all user balances
     def get_balances(self):
+        print('🔸 Fetching balances:')
+        print('⚠️ THIS DOES NOT WORK ⚠️')
+
         # {'Code': 1100, 'Msg': 'success', 'Content': {'EOS': {'available': '0', 'freeze': '0'}, ...}}
         r = self.post('/game/balances')
 
@@ -206,6 +178,8 @@ class HotbitAPI(object):
     # Get order history (does not include unfilled active orders)
     # Scraped from https://www.hotbit.io/trade/orderhistory
     def order_history(self, market, start_time, end_time=None, page=1, page_size=20):
+        print('🔸 Fetching order history:')
+
         params = {
             'start_time': int(start_time),
             'end_time': int(end_time or time()+60),
@@ -215,60 +189,64 @@ class HotbitAPI(object):
             # 'platform': 'web'
         }
 
-        print('🔸 Fetching order history:')
         print(params)
 
         r = self.get('order/history', params=params)
-
-        # {
-        #     'Code': 1100,
-        #     'Msg': 'success',
-        #     'Content': {
-        #         'data': [
-        #             {'id': 37693965599, 'create_time': 1622880382.896458, 'finish_time': 1622880382.896462, 'user_id': 2349216, 'market': 'BTCUSDT', 'source': 'web', 't': 1, 'side': 1, 'price': '37488.24', 'amount': '0.000001', 'taker_fee': '0.0006', 'maker_fee': '-0.0005', 'deal_stock': '0.000001', 'deal_money': '0.03752855', 'deal_fee': '0.00002251713', 'status': 0, 'deal_fee_alt': '0', 'alt_fee': '-0.0005', 'fee_stock': ''},
-        #             :
-        #         ],
-        #         'page_nextid': 0
-        #     }
-        # }
 
         if r['Msg'] != 'success':
             print('⛔️ Failed to fetch order history')
             return None
 
-        orders = r['Content']['data']
+        data = r['Content']['data']
 
-        orders_dict = { o['id']: o for o in orders }
+        orders_dict = { u['id']: u for u in data }
+
+        print('Returning:', orders_dict)
+
         return orders_dict
 
 
     # Scraped from https://www.hotbit.io/trade/order
     def trade_history(self, market, start_time, end_time=None, page=1, page_size=20):
+        print('🔸 Fetching trade history:')
+
         data = {
             'startTime': int(start_time),
             'endTime': int(end_time or time()),
             'market': market.replace('/', ''),
             'side': 0,
-            'hideCanceled': True,
+            'hideCanceled': False,
             'pageNum': page,
             'numPerPage': page_size,
         }
 
-        print('🔸 Fetching trade history:')
         print(data)
 
-        return self.post('/trade/history/query', data=data)
+        r = self.post('/trade/history/query', data=data)
+
+        if r['Msg'] != 'success':
+            print('⛔️ Failed to fetch trade history')
+            return None
+
+        data = r['Content']['records']
+
+        trades_dict = { u['deal_order_id']: u for u in data }
+
+        print('Returning:', trades_dict)
+
+        return trades_dict
 
 
     # Get account deposit history
     def deposit_history(self, page=1, page_size=20):
+        print('🔸 Fetching deposit history:')
+
         data = {
             'categories': 1,
             'pageNum': page,
             'numPerPage': page_size
         }
 
-        print('🔸 Fetching deposit history:')
         print(data)
 
         return self.post('/fund/history/query?platform=web', data=data)
@@ -276,13 +254,13 @@ class HotbitAPI(object):
 
     # Get account withdrawal history
     def withdraw_history(self, page=1, page_size=20):
+        print('🔸 Fetching withdraw history:')
         data = {
             'categories': 2,
             'pageNum': page,
             'numPerPage': page_size
         }
 
-        print('🔸 Fetching withdraw history:')
         print(data)
 
         return self.post('/fund/history/query?platform=web', data=data)
@@ -296,11 +274,10 @@ from time import time, sleep
 
 import json
 
-# Need to create hotbit.json like this:
+# NOTE: Need to create hotbit.json like this:
 #     {
 #         "hotbit_cookie": "05a...81e"
 #     }
-
 
 if __name__ == '__main__':
 
@@ -372,14 +349,14 @@ if __name__ == '__main__':
 
 
     print()
-    print('🟩  Making a BUY order that WILL complete')
+    print('🟩  🟩  Making a BUY order that WILL complete')
     order_id__will_fill, r = hotbit.post_order(market='BTC/USDT', price=CURRENT_BTC_PRICE*2, quantity=min_qty, side='BUY', type='LIMIT')
 
     print('...✅' if r['Msg'] == 'success' else '⛔️')
 
 
     print()
-    print('🟥  Making a SELL order that WILL complete')
+    print('🟥  🟥  Making a SELL order that WILL complete')
     order_id__will_fill, r = hotbit.post_order(market='BTC/USDT', price=CURRENT_BTC_PRICE*2, quantity=min_qty, side='BUY', type='LIMIT')
 
     print('...✅' if r['Msg'] == 'success' else '⛔️')
@@ -436,6 +413,8 @@ if __name__ == '__main__':
 
 
     print()
-    print('🔸 🔸 Trade History, last 30 minute')
+    print('🔸 🔸 Trade History, last minute')
 
     r = hotbit.trade_history(market='', start_time=time()-60)
+
+    print('✅ IDs:', r.keys())
