@@ -65,6 +65,49 @@ withdrawal_history = hotbit.withdraw_history(page=1, page_size=10)
 deposit_history = hotbit.deposit_history(page=1, page_size=10)
 ```
 
+## Websocket
+
+For access to the private websocket, again, go a random hotbit page while logging in, and go to devtools.
+
+- Look for ws.hotbit.io
+- Go to the 'message' tab
+- Click on the message that included 'server.auth2'
+- Copy the full array, [231230,163094234,'web','KLSJDF0349903FSLFJL']. This contains your UID, timestamp, platform and signature
+
+![image](https://user-images.githubusercontent.com/35689067/120903048-18bc4700-c644-11eb-96e9-ca8b62a9e6d0.png)
+
+The copied array (key) is only valid for 5 minutes. Existing connections will remain open, but if new connections have to be initialized, a new key must be generated and copied
+
+Example code:
+
+```
+from HotbitWS import HotbitWS
+
+def callback_(method, msg):
+    if method == 'server.auth2':
+        if msg['result'] is not None:
+            print('Logged in successfully!')
+        else:
+            print('Logging in failed :(')
+
+    if method == 'balance.query':
+        print('New balance: ', msg['result'])
+
+    if method == 'deals.update':
+        print('New deal: ', msg)
+
+key = [2311866, 1622920122, "web", "7EC20BE31633E22D533BB79E082930CB"]
+ws = HotbitWS(callback_, key)
+
+time.sleep(3)  # Wait for the websocket to start up and log in
+
+ws.subscribe('deals.subscribe', params=['BTCUSDT', 'ETHUSDT', 'ADAUSDT'])  # subscribe to a public stream
+
+while True:
+    time.sleep(5)
+    ws.subscribe('balance.query')  # ask for a private query
+```
+
 ## Some notes
 
 Market orders are not available on Hotbit, instead, you can put a limit order higher than the current price, which will fill it like a market order.
