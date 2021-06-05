@@ -6,20 +6,7 @@ class HotbitAPI(object):
         self.session = requests.Session()
         self.base_url = 'https://www.hotbit.io/v1'
         self.headers = {
-            'authority': 'www.hotbit.io',
-            'pragma': 'no-cache',
-            'cache-control': 'no-cache',
-            'sec-ch-ua': '^\\^',
-            'accept': 'application/json, text/plain, */*',
-            'sec-ch-ua-mobile': '?0',
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36',
-            'content-type': 'application/x-www-form-urlencoded',
-            'origin': 'https://www.hotbit.io',
-            'sec-fetch-site': 'same-origin',
-            'sec-fetch-mode': 'cors',
-            'sec-fetch-dest': 'empty',
             'referer': 'https://www.hotbit.io/',
-            'accept-language': 'nl-NL,nl;q=0.9,en-US;q=0.8,en;q=0.7,lb;q=0.6,de;q=0.5',
             'cookie': 'hotbit=' + key
         }
         self.session.headers.update(self.headers)
@@ -28,10 +15,9 @@ class HotbitAPI(object):
 
     # POST a buy or sell order
     def post_order(self, price, quantity, market, side, type):
-        # Format the price and quantity properly so we don't get errors
         prec = self.precisions[market.replace('/', '')]
         price_ = str(round(price, prec[0]))
-        quantity_ = str(round(quantity, prec[1].index('1') - (prec[1].index('.') if '.' in prec[1] else len(prec[1]))))
+        quantity_ = str(round(quantity, (prec[1].index('1') - 1) if '.' in prec[1] else len(prec[1])))
         data = {
           'price': price_,
           'quantity': quantity_,
@@ -41,7 +27,7 @@ class HotbitAPI(object):
           'hide': 'false',
           'use_discount': 'false'
         }
-        return self.session.post(self.base_url + '/order/create?platform=web', data=data).json()
+        return self.session.post(self.base_url + '/order/create', data=data).json()
 
     # Cancel an order (needs both market and order-id)
     def cancel_order(self, market, order_id):
@@ -49,20 +35,20 @@ class HotbitAPI(object):
             'market': market.replace('/', ''),
             'order_id': order_id
         }
-        return self.session.post(self.base_url + '/order/cancel?platform=web', data=data).json()
+        return self.session.post(self.base_url + '/order/cancel', data=data).json()
 
     # Cancel multiple orders (needs market and order-ids for each one)
     def cancel_all(self, market, order_ids):
         data = [{'market': market.replace('/', ''), 'order_id': o} for o in order_ids]
-        return self.session.post(self.base_url + '/order/cancel?platform=web', data=data).json()
+        return self.session.post(self.base_url + '/order/cancel', data=data).json()
 
     # Get all user balances
     def get_balances(self):
-        return self.session.post(self.base_url + '/game/balances?platform=web').json()
+        return self.session.post(self.base_url + '/game/balances').json()
 
     # Get info about the user
     def get_user_info(self):
-        return self.session.get(self.base_url + '/info?platform=web').json()
+        return self.session.get(self.base_url + '/info').json()
 
     # Get order history (does not include unfilled active orders)
     def order_history(self, market, start_time, end_time, page=1, page_size=20):
@@ -72,7 +58,6 @@ class HotbitAPI(object):
             'market': market.replace('/', ''),
             'page': page,
             'page_size': page_size,
-            'platform': 'web'
         }
         return self.session.get(self.base_url + '/order/history', params=params).json()
 
@@ -83,10 +68,9 @@ class HotbitAPI(object):
             'endTime': end_time,
             'market': market.replace('/', ''),
             'side': 0,
-            'hideCanceled': True,
+            'hideCanceled': False,
             'pageNum': page,
             'numPerPage': page_size,
-            'platform': 'web'
         }
         return self.session.post(self.base_url + '/trade/history/query', data=data).json()
 
@@ -97,7 +81,7 @@ class HotbitAPI(object):
             'pageNum': page,
             'numPerPage': page_size
         }
-        return self.session.post(self.base_url + '/fund/history/query?platform=web', data=data).json()
+        return self.session.post(self.base_url + '/fund/history/query', data=data).json()
 
     # Get account withdrawal history
     def withdraw_history(self, page=1, page_size=20):
@@ -106,5 +90,4 @@ class HotbitAPI(object):
             'pageNum': page,
             'numPerPage': page_size
         }
-        return self.session.post(self.base_url + '/fund/history/query?platform=web', data=data).json()
-
+        return self.session.post(self.base_url + '/fund/history/query', data=data).json()
