@@ -58,31 +58,3 @@ class HotbitWS:
                 method = self.methods[data_['id']]
             self.callback(method, data_)
 
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-
-def callback_(method, msg):
-    if method == 'server.auth2':
-        if msg['result'] is not None:
-            print('Logged in successfully!')
-        else:
-            print('Logging in failed :(')
-
-    if method == 'balance.query':
-        print('New balance: ', msg['result'])
-
-    if method == 'deals.update':
-        print('New deal: ', msg)
-
-key = [23....., 1622920122, "web", "7EC20................082930CB"]  # insert key here
-ws = HotbitWS(callback_, key)
-
-time.sleep(3)  # Wait for the websocket to start up and log in
-
-ws.subscribe('deals.subscribe', params=['BTCUSDT', 'ETHUSDT', 'ADAUSDT'])  # subscribe to a public stream
-
-while True:
-    time.sleep(5)
-    ws.subscribe('balance.query')  # ask for a private query
-
