@@ -1,3 +1,55 @@
+#!../env/bin/python
+
+# import httpx
+
+# BASE_URL = 'https://www.hotbit.io/v1/'
+
+# class HotBitAPI:
+#     def __init__(self, cookie):
+#         self.cookie = cookie
+
+
+#         r = self.get('market.list')
+
+#         print(r)
+
+
+#     def post(self, stub, data):
+#         headers = {
+#             'referer': 'https://www.hotbit.io/',
+#             'cookie': f'hotbit={self.cookie}',
+#         }
+
+#         r = httpx.post(BASE_URL + stub, headers=headers, data=data)
+
+#         print('Returned code: ', r.status_code)
+
+#         print(r.json())
+#         return r.json()
+
+#     def get(self, stub):
+#         headers = {
+#             'referer': 'https://www.hotbit.io/',
+#             'cookie': f'hotbit={self.cookie}',
+#         }
+
+#         r = httpx.get(BASE_URL + stub, headers=headers)
+
+#         print('Returned code: ', r.status_code)
+
+#         print(r.text)
+#         return r.text
+
+# HOTBIT_COOKIE = '05a...81e'
+
+# HotBitAPI(HOTBIT_COOKIE)
+
+# exit(0)
+
+import json
+
+from decimal import Decimal
+
 import requests
 
 # 🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥
@@ -35,32 +87,45 @@ class HotbitAPI(object):
 
 
     def post(self, stub, **kwargs):
+        print('POST-ing to endpoint:', stub)
+        print(kwargs)
+
         return self.session.post(self.base_url + '/' + stub, **kwargs).json()
 
 
     # POST a buy or sell order
-    def post_order(self, price, quantity, market, side, type):
+    def post_order(self, price, quantity, market, side, type, dry_run=False):
         price, quantity = float(price), float(quantity)
 
         # Format the price and quantity properly so we don't get errors
         meta = self.symbol_meta[market.replace('/', '')]
 
-        price = round(float(price), meta['money_prec'])
+        prec = meta['money_prec']
+        price = round(float(price), prec)
 
-        min_amt = meta['min_amount']
-        if '.' in min_amt:
-            dps = len(min_amt.split('.')[1])
-            quantity = round(quantity, dps)
+        # handles '0.01' and '100'
+        min_amt =  Decimal(meta['min_amount'])
+        quantity_quantized = str(Decimal(quantity).quantize(min_amt))
+
+        print('min_amt', min_amt)
+        print('quantity:', quantity, 'quantized by min_amt: ', min_amt, '->', quantity_quantized)
+
+        # s = meta['min_amount']  # string
+        # quantity = str(round(quantity, s.index('1') - (s.index('.') if '.' in s else len(s))))
 
         data = {
           'price': price,
-          'quantity': quantity,
+          'quantity': quantity_quantized,
           'market': market,
           'side': side,
           'type': type,
           'hide': False,
           'use_discount': False
         }
+
+        if dry_run:
+            print(data)
+            return None, None
 
         response = self.post('order/create', data=data)
 
@@ -74,13 +139,21 @@ class HotbitAPI(object):
             'market': market.replace('/', ''),
             'order_id': order_id
         }
-        return self.session.post(self.base_url + '/order/cancel?platform=web', data=data).json()
+
+        return self.post('order/cancel', data=data)
 
 
-    # Cancel multiple orders (needs market and order-ids for each one)
-    def cancel_all(self, market, order_ids):
-        data = [{'market': market.replace('/', ''), 'order_id': o} for o in order_ids]
-        return self.session.post(self.base_url + '/order/cancel?platform=web', data=data).json()
+    # Cancel one or multiple orders (pass an id or a list of ids)
+    def cancel_orders(self, market, order_ids):
+        data = [
+            {
+                'market': market.replace('/', ''),
+                'order_id': id_
+            }
+            for id_ in order_ids
+        ]
+
+        return self.post('order/cancel_all', data=json.dumps(data))
 
 
     # Get all user balances
@@ -179,9 +252,6 @@ class HotbitAPI(object):
 
 # 🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥  🐥
 
-
-TEST_ORDERS = True
-
 CURRENT_BTC_PRICE = 35000
 
 from time import time, sleep
@@ -192,11 +262,20 @@ import json
 #     {
 #         "hotbit_cookie": "05a...81e"
 #     }
-with open('hotbit.json') as f:
-    data = json.load(f)
-    hotbit_cookie = data['hotbit_cookie']
+
 
 if __name__ == '__main__':
+
+    with open('hotbit.json') as f:
+        data = json.load(f)
+        hotbit_cookie = data['hotbit_cookie']
+
+    print()
+    print('Current timestamp:', time())
+
+    print()
+    print('🔸 🔸 🔸  Creating Connection to HotBit')
+
     hotbit = HotbitAPI(hotbit_cookie)
 
     usdt_symbols = set(
@@ -204,64 +283,117 @@ if __name__ == '__main__':
             if k[-4:] == 'USDT'
     )
 
-    print('HotBit supports', len(usdt_symbols), 'USDT Symbols:')
+    print()
+    print('🔹 HotBit supports', len(usdt_symbols), 'USDT Symbols:')
     print(sorted(usdt_symbols)[:10], ', ...')
 
     print()
-    print('Meta for ADAUSDT:')
+    print('🔹 Meta for ADAUSDT:')
     print(hotbit.symbol_meta['ADAUSDT'])
 
     mins = set( v['min_amount'] for v in hotbit.symbol_meta.values() )
     precs = set( v['money_prec'] for v in hotbit.symbol_meta.values() )
 
     print()
-    print('MinAmounts:', sorted(mins))
-    print('Precisions:', sorted(precs))
+    print('🔹 MinAmounts:', sorted(mins))
+    print('🔹 Precisions:', sorted(precs))
+
+    print()
+    print('🔸 Fetching balances')
 
     balances = hotbit.get_balances()
-    print()
     print('USDT balance:', balances['USDT']['available'])
 
     if balances['USDT']['available'] == 0:
         print('⛔️ balance is reporting as 0')
 
-    print()
-    print('Current timestamp:', time())
-
-    if TEST_ORDERS:
-        print()
-        print('min_qty limit BUY on BTC/USDT with LOW price, so it will NOT be filled')
-        order_id__nonfill, response = hotbit.post_order(market='BTC/USDT', price=CURRENT_BTC_PRICE/2, quantity=hotbit.symbol_meta['BTCUSDT']['min_amount'], side='BUY', type='LIMIT')
-
-        print(response)
-        assert(response['Msg'] == 'success')
-
-        print()
-        print('1/2 min_qty limit BUY on BTC/USDT (expect fail)')
-        no_order_id_as_fail, response = hotbit.post_order(market='BTC/USDT', price=CURRENT_BTC_PRICE/2, quantity=float(hotbit.symbol_meta['BTCUSDT']['min_amount'])/2, side='BUY', type='LIMIT')
-
-        print(response)
-        assert(response['Msg'] == 'error quantity')
-
-        print()
-        print('Making an order that WILL complete')
-        order_id__will_fill, response = hotbit.post_order(market='BTC/USDT', price=CURRENT_BTC_PRICE*2, quantity=hotbit.symbol_meta['BTCUSDT']['min_amount'], side='BUY', type='LIMIT')
-
-        print(response)
-        assert(response['Msg'] == 'success')
 
     print()
-    print('Waiting 10s before fetching order history')
-    sleep(10)
+    print()
+    print('🔸 Testing orders')
+
+    min_qty = Decimal(hotbit.symbol_meta['BTCUSDT']['min_amount'])
 
     print()
-    print('Order History, last hour')
-    r = hotbit.order_history('BTC/USDT', start_time=time()-3600)
+    print('🟩  min_qty limit BUY on BTC/USDT with LOW price, so it will NOT be filled')
+    order_id__nonfill, response = hotbit.post_order(market='BTC/USDT', price=CURRENT_BTC_PRICE/2, quantity=min_qty, side='BUY', type='LIMIT')
+
+    print(response)
+    print('...✅' if response['Msg'] == 'success' else '⛔️')
+
+    print()
+    print('🟩  1/2 min_qty limit BUY on BTC/USDT (expect fail)')
+    no_order_id_as_fail, response = hotbit.post_order(market='BTC/USDT', price=CURRENT_BTC_PRICE/2, quantity=min_qty/2, side='BUY', type='LIMIT')
+
+    print(response)
+    print('...✅' if response['Msg'] == 'error quantity' else '⛔️')
+
+
+    print()
+    print('🟩  Making a BUY order that WILL complete')
+    order_id__will_fill, response = hotbit.post_order(market='BTC/USDT', price=CURRENT_BTC_PRICE*2, quantity=min_qty, side='BUY', type='LIMIT')
+
+    print(response)
+    print('...✅' if response['Msg'] == 'success' else '⛔️')
+
+
+    print()
+    print('🟥  Making a SELL order that WILL complete')
+    order_id__will_fill, response = hotbit.post_order(market='BTC/USDT', price=CURRENT_BTC_PRICE*2, quantity=min_qty, side='BUY', type='LIMIT')
+
+    print(response)
+    print('...✅' if response['Msg'] == 'success' else '⛔️')
+
+
+    print()
+    print('Waiting 5s...')
+    sleep(5)
+
+
+    print()
+    print('❌ testing cancel_order')
+
+    print('Cancelling order that did not fill:', order_id__nonfill)
+
+    response = hotbit.cancel_order('BTC/USDT', order_id__nonfill)
+    print(response)
+
+    print('...✅' if response['Msg'] == 'sucessfully cancelled' else '⛔️ Problem with cancel')
+
+    print()
+    
+    print('❌ ❌ testing cancel_all')
+
+    print('Placing 2 orders which will not fill, to test cancel-all')
+
+    sides = ['BUY', 'SELL', 'BUY']
+    ids = []
+    for side in ['BUY', 'SELL']:
+        price = CURRENT_BTC_PRICE/2 if side == 'BUY' else CURRENT_BTC_PRICE*2
+        id_, response = hotbit.post_order(market='BTC/USDT', price=price, quantity=min_qty, side=side, type='LIMIT')
+        print(response)
+        ids.append(id_)
+
+    print()
+    print('Waiting 5s...')
+    sleep(5)
+
+    print('Cancelling ids:', ids)
+
+    response = hotbit.cancel_orders('BTC/USDT', ids)
+
+    print(response)
+
+
+    print('...✅ ' if response['Msg'] == 'all orders are sucessfully cancelled' else '⛔️')
+
+    print()
+    print('🔸 Order History, last minute')
+    r = hotbit.order_history('BTC/USDT', start_time=time()-60)
     print(r)
 
     print()
     print('OrderIds:', r.keys())
 
     print()
-    print('Found' if order_id__will_fill in r.keys() else '⛔️ Failed to find', 'our completed order in order_history')
-
+    print('...✅ Found' if order_id__will_fill in r.keys() else '⛔️ Failed to find', 'first completed order in order_history')
