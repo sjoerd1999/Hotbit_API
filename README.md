@@ -67,7 +67,7 @@ deposit_history = hotbit.deposit_history(page=1, page_size=10)
 
 ## Websocket
 
-For access to the private websocket, again, go a random hotbit page while logging in, and go to devtools.
+For access to the private websocket, again, go a random hotbit page while being logged in, and go to devtools->network.
 
 - Look for ws.hotbit.io
 - Go to the 'message' tab
@@ -96,7 +96,7 @@ def callback_(method, msg):
     if method == 'deals.update':
         print('New deal: ', msg)
 
-key = [2311866, 1622920122, "web", "7EC20BE31633E22D533BB79E082930CB"]
+key = [23-----, 16-----122, "web", "7E-----------------0CB"] # copy your own key here
 ws = HotbitWS(callback_, key)
 
 time.sleep(3)  # Wait for the websocket to start up and log in
