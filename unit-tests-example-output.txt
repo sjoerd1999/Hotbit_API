@@ -1,8 +1,6 @@
-(env) 
-🧢 pi@pPro18 ~/dragon/dragon/src (bitmart-ftw)
 > ./HotBit.py 
 
-Current timestamp: 1622904848.4301288
+Current timestamp: 1622919883.978039
 
 🔸 🔸 🔸  Creating Connection to HotBit
 
@@ -10,85 +8,123 @@ Current timestamp: 1622904848.4301288
 ['0xCASHUSDT', '1INCH12MUSDT', '1INCH1D3LUSDT', '1INCH1D3SUSDT', '1INCHUSDT', 'A5TUSDT', 'AACUSDT', 'AAPLUSDT', 'AAVE1D3LUSDT', 'AAVE1D3SUSDT'] , ...
 
 🔹 Meta for ADAUSDT:
-{'min_amount': '1', 'name': 'ADAUSDT', 'fee_prec': 4, 'stock': 'ADA', 'money': 'USDT', 'stock_prec': 4, 'money_prec': 8}
+{'money_prec': 8, 'stock_prec': 4, 'name': 'ADAUSDT', 'fee_prec': 4, 'stock': 'ADA', 'money': 'USDT', 'min_amount': '1'}
 
 🔹 MinAmounts: ['0.000001', '0.00001', '0.0001', '0.001', '0.01', '0.1', '1', '10', '100', '1000', '10000', '100000', '1000000', '10000000']
 🔹 Precisions: [0, 2, 3, 4, 5, 6, 7, 8, 10]
 
-🔸 Fetching balances
+🔸 🔸 Fetching balances
 POST-ing to endpoint: /game/balances
 {}
-{'Code': 1100, 'Msg': 'success', 'Content': {'BEAM': {'available': '0', 'freeze': '0'}, 'BTC': {'available': '0', 'freeze': '0'}, 'EOS': {'available': '0', 'freeze': '0'}, 'HTB': {'available': '0', 'freeze': '0'}, 'LTC': {'available': '0', 'freeze': '0'}, 'USDT': {'available': '0', 'freeze': '0'}, 'DAPPC': {'available': '0', 'freeze': '0'}, 'ETH': {'available': '0', 'freeze': '0'}, 'GRIN': {'available': '0', 'freeze': '0'}}}
+⚡️ {'Code': 1100, 'Msg': 'success', 'Content': {'BTC': {'available': '0', 'freeze': '0'}, 'DAPPC': {'available': '0', 'freeze': '0'}, 'ETH': {'available': '0', 'freeze': '0'}, 'HTB': {'available': '0', 'freeze': '0'}, 'LTC': {'available': '0', 'freeze': '0'}, 'BEAM': {'available': '0', 'freeze': '0'}, 'EOS': {'available': '0', 'freeze': '0'}, 'GRIN': {'available': '0', 'freeze': '0'}, 'USDT': {'available': '0', 'freeze': '0'}}}
+⚡️ {'Code': 1100, 'Msg': 'success', 'Content': {'BTC': {'available': '0', 'freeze': '0'}, 'DAPPC': {'available': '0', 'freeze': '0'}, 'ETH': {'available': '0', 'freeze': '0'}, 'HTB': {'available': '0', 'freeze': '0'}, 'LTC': {'available': '0', 'freeze': '0'}, 'BEAM': {'available': '0', 'freeze': '0'}, 'EOS': {'available': '0', 'freeze': '0'}, 'GRIN': {'available': '0', 'freeze': '0'}, 'USDT': {'available': '0', 'freeze': '0'}}}
 USDT balance: 0.0
 ⛔️ balance is reporting as 0
 
+🔸 🔸 withdraw / deposit history
+🔸 Fetching deposit history:
+{'categories': 1, 'pageNum': 1, 'numPerPage': 20}
+POST-ing to endpoint: /fund/history/query?platform=web
+{'data': {'categories': 1, 'pageNum': 1, 'numPerPage': 20}}
+⚡️ {'Code': 1100, 'Msg': 'success', 'Content': {'records': [{'category': 1, 'txid': '0x0f484cfdb5323a1b6cd80143115ee8c7bc4788978bd84f40e2f0f44a1baa0', 'business': 1, 'amount': 99.2, 'to_addr': '0x6AA49D64A45779921b9A07855DCf51723C45A', 'to_uid': 0, 'main_symbol': 'BSC', 'symbol': 'USDT', 'state': 1, 'progress': '100/100', 'fee_symbol': '', 'fee': 0, 'net_amount': 99.2, 'create_time': '2021-06-04T01:38:55+08:00', 'loop': False, 'arrival_time': '2021-06-04T01:38:55+08:00'}], 'total': 1}}
+🔸 Fetching withdraw history:
+{'categories': 2, 'pageNum': 1, 'numPerPage': 20}
+POST-ing to endpoint: /fund/history/query?platform=web
+{'data': {'categories': 2, 'pageNum': 1, 'numPerPage': 20}}
+⚡️ {'Code': 1100, 'Msg': 'success', 'Content': {'records': None, 'total': 0}}
 
-🔸 Testing orders
+
+🔸 🔸 Testing orders
 
 🟩  min_qty limit BUY on BTC/USDT with LOW price, so it will NOT be filled
 min_amt 0.000001
-quantity: 1e-06 quantized by min_amt:  0.000001 -> 0.000001
+quantized by min_amt 0.000001 , quantity 0.000001 -> 0.000001
+🟩 Placing order:
+{'price': 17500.0, 'quantity': '0.000001', 'market': 'BTC/USDT', 'side': 'BUY', 'type': 'LIMIT', 'hide': False, 'use_discount': False}
 POST-ing to endpoint: order/create
 {'data': {'price': 17500.0, 'quantity': '0.000001', 'market': 'BTC/USDT', 'side': 'BUY', 'type': 'LIMIT', 'hide': False, 'use_discount': False}}
-{'Code': 1100, 'Msg': 'success', 'Content': {'id': 37746959566}}
+⚡️ {'Code': 1100, 'Msg': 'success', 'Content': {'id': 37775516825}}
 ...✅
 
 🟩  1/2 min_qty limit BUY on BTC/USDT (expect fail)
 min_amt 0.000001
-quantity: 5e-07 quantized by min_amt:  0.000001 -> 0.000000
+quantized by min_amt 0.000001 , quantity 5E-7 -> 0.000000
+🟩 Placing order:
+{'price': 17500.0, 'quantity': '0.000000', 'market': 'BTC/USDT', 'side': 'BUY', 'type': 'LIMIT', 'hide': False, 'use_discount': False}
 POST-ing to endpoint: order/create
 {'data': {'price': 17500.0, 'quantity': '0.000000', 'market': 'BTC/USDT', 'side': 'BUY', 'type': 'LIMIT', 'hide': False, 'use_discount': False}}
-{'Code': 1201, 'Msg': 'error quantity', 'Content': None}
+⚡️ {'Code': 1201, 'Msg': 'error quantity', 'Content': None}
 ...✅
 
 🟩  Making a BUY order that WILL complete
 min_amt 0.000001
-quantity: 1e-06 quantized by min_amt:  0.000001 -> 0.000001
+quantized by min_amt 0.000001 , quantity 0.000001 -> 0.000001
+🟩 Placing order:
+{'price': 70000.0, 'quantity': '0.000001', 'market': 'BTC/USDT', 'side': 'BUY', 'type': 'LIMIT', 'hide': False, 'use_discount': False}
 POST-ing to endpoint: order/create
 {'data': {'price': 70000.0, 'quantity': '0.000001', 'market': 'BTC/USDT', 'side': 'BUY', 'type': 'LIMIT', 'hide': False, 'use_discount': False}}
-{'Code': 1100, 'Msg': 'success', 'Content': {'id': 37746961093}}
+⚡️ {'Code': 1100, 'Msg': 'success', 'Content': {'id': 37775517728}}
 ...✅
 
 🟥  Making a SELL order that WILL complete
 min_amt 0.000001
-quantity: 1e-06 quantized by min_amt:  0.000001 -> 0.000001
+quantized by min_amt 0.000001 , quantity 0.000001 -> 0.000001
+🟩 Placing order:
+{'price': 70000.0, 'quantity': '0.000001', 'market': 'BTC/USDT', 'side': 'BUY', 'type': 'LIMIT', 'hide': False, 'use_discount': False}
 POST-ing to endpoint: order/create
 {'data': {'price': 70000.0, 'quantity': '0.000001', 'market': 'BTC/USDT', 'side': 'BUY', 'type': 'LIMIT', 'hide': False, 'use_discount': False}}
-{'Code': 1100, 'Msg': 'success', 'Content': {'id': 37746961397}}
+⚡️ {'Code': 1100, 'Msg': 'success', 'Content': {'id': 37775518592}}
 ...✅
 
 Waiting 5s...
 
 ❌ testing cancel_order
-Cancelling order that did not fill: 37746959566
+Cancelling order that did not fill: 37775516825
+❌ Cancelling order:
+{'market': 'BTCUSDT', 'order_id': 37775516825}
 POST-ing to endpoint: order/cancel
-{'data': {'market': 'BTCUSDT', 'order_id': 37746959566}}
-{'Code': 1100, 'Msg': 'sucessfully cancelled', 'Content': None}
+{'data': {'market': 'BTCUSDT', 'order_id': 37775516825}}
+⚡️ {'Code': 1100, 'Msg': 'sucessfully cancelled', 'Content': None}
 ...✅
 
 ❌ ❌ testing cancel_all
 Placing 2 orders which will not fill, to test cancel-all
 min_amt 0.000001
-quantity: 1e-06 quantized by min_amt:  0.000001 -> 0.000001
+quantized by min_amt 0.000001 , quantity 0.000001 -> 0.000001
+🟩 Placing order:
+{'price': 17500.0, 'quantity': '0.000001', 'market': 'BTC/USDT', 'side': 'BUY', 'type': 'LIMIT', 'hide': False, 'use_discount': False}
 POST-ing to endpoint: order/create
 {'data': {'price': 17500.0, 'quantity': '0.000001', 'market': 'BTC/USDT', 'side': 'BUY', 'type': 'LIMIT', 'hide': False, 'use_discount': False}}
-{'Code': 1100, 'Msg': 'success', 'Content': {'id': 37746971788}}
+⚡️ {'Code': 1100, 'Msg': 'success', 'Content': {'id': 37775528716}}
 min_amt 0.000001
-quantity: 1e-06 quantized by min_amt:  0.000001 -> 0.000001
+quantized by min_amt 0.000001 , quantity 0.000001 -> 0.000001
+🟥 Placing order:
+{'price': 70000.0, 'quantity': '0.000001', 'market': 'BTC/USDT', 'side': 'SELL', 'type': 'LIMIT', 'hide': False, 'use_discount': False}
 POST-ing to endpoint: order/create
 {'data': {'price': 70000.0, 'quantity': '0.000001', 'market': 'BTC/USDT', 'side': 'SELL', 'type': 'LIMIT', 'hide': False, 'use_discount': False}}
-{'Code': 1100, 'Msg': 'success', 'Content': {'id': 37746972290}}
+⚡️ {'Code': 1100, 'Msg': 'success', 'Content': {'id': 37775529784}}
 
 Waiting 5s...
-Cancelling ids: [37746971788, 37746972290]
+Cancelling ids: [37775528716, 37775529784]
+❌ ❌ Cancelling orders:
+[{'market': 'BTCUSDT', 'order_id': 37775528716}, {'market': 'BTCUSDT', 'order_id': 37775529784}]
 POST-ing to endpoint: order/cancel_all
-{'data': '[{"market": "BTCUSDT", "order_id": 37746971788}, {"market": "BTCUSDT", "order_id": 37746972290}]'}
-{'Code': 1100, 'Msg': 'all orders are sucessfully cancelled', 'Content': None}
+{'data': '[{"market": "BTCUSDT", "order_id": 37775528716}, {"market": "BTCUSDT", "order_id": 37775529784}]'}
+⚡️ {'Code': 1100, 'Msg': 'all orders are sucessfully cancelled', 'Content': None}
 ...✅ 
 
-🔸 Order History, last minute
-{37746961397: {'id': 37746961397, 'create_time': 1622904851.79923, 'finish_time': 1622904851.799233, 'user_id': 2349216, 'market': 'BTCUSDT', 'source': 'web', 't': 1, 'side': 2, 'price': '70000', 'amount': '0.000001', 'taker_fee': '0.0006', 'maker_fee': '-0.0005', 'deal_stock': '0.000001', 'deal_money': '0.0356589', 'deal_fee': '0.00002139534', 'status': 0, 'deal_fee_alt': '0', 'alt_fee': '-0.0005', 'fee_stock': ''}, 37746961093: {'id': 37746961093, 'create_time': 1622904851.577049, 'finish_time': 1622904851.577052, 'user_id': 2349216, 'market': 'BTCUSDT', 'source': 'web', 't': 1, 'side': 2, 'price': '70000', 'amount': '0.000001', 'taker_fee': '0.0006', 'maker_fee': '-0.0005', 'deal_stock': '0.000001', 'deal_money': '0.0356589', 'deal_fee': '0.00002139534', 'status': 0, 'deal_fee_alt': '0', 'alt_fee': '-0.0005', 'fee_stock': ''}}
+🔸 🔸 Order History, last minute
+🔸 Fetching order history:
+{'start_time': 1622919838, 'end_time': 1622919958, 'market': 'BTCUSDT', 'page': 1, 'page_size': 20}
+⚡️ {'Code': 1100, 'Msg': 'success', 'Content': {'data': [{'id': 37775518592, 'create_time': 1622919887.3366, 'finish_time': 1622919887.336604, 'user_id': 2349216, 'market': 'BTCUSDT', 'source': 'web', 't': 1, 'side': 2, 'price': '70000', 'amount': '0.000001', 'taker_fee': '0.0006', 'maker_fee': '-0.0005', 'deal_stock': '0.000001', 'deal_money': '0.03613447', 'deal_fee': '0.000021680682', 'status': 0, 'deal_fee_alt': '0', 'alt_fee': '-0.0005', 'fee_stock': ''}, {'id': 37775517728, 'create_time': 1622919886.864411, 'finish_time': 1622919886.864414, 'user_id': 2349216, 'market': 'BTCUSDT', 'source': 'web', 't': 1, 'side': 2, 'price': '70000', 'amount': '0.000001', 'taker_fee': '0.0006', 'maker_fee': '-0.0005', 'deal_stock': '0.000001', 'deal_money': '0.03614', 'deal_fee': '0.000021684', 'status': 0, 'deal_fee_alt': '0', 'alt_fee': '-0.0005', 'fee_stock': ''}], 'page_nextid': 0}}
 
-OrderIds: dict_keys([37746961397, 37746961093])
+OrderIds: dict_keys([37775518592, 37775517728])
 
 ...✅ Found first completed order in order_history
+
+🔸 🔸 Trade History, last 30 minute
+🔸 Fetching trade history:
+{'startTime': 1622919838, 'endTime': 1622919898, 'market': '', 'side': 0, 'hideCanceled': True, 'pageNum': 1, 'numPerPage': 20}
+POST-ing to endpoint: /trade/history/query
+{'data': {'startTime': 1622919838, 'endTime': 1622919898, 'market': '', 'side': 0, 'hideCanceled': True, 'pageNum': 1, 'numPerPage': 20}}
+⚡️ {'Code': 1100, 'Msg': 'success', 'Content': {'nextid': 0, 'page': 1, 'records': [{'deal': '0.03613447', 'fee_alt': '0.0', 'market': 'BTCUSDT', 'price': '36134.47', 'user_id': 2349216, 'amount': '1e-06', 'deal_order_id': 37775518526, 'fee': '2.1680682e-05', 'fee_stock': 'USDT', 'role': 2, 'side': 2, 'time': 1622919887.336775, 'deal_id': 2301560717}, {'amount': '1e-06', 'deal': '0.03614', 'deal_id': 2301560707, 'fee': '2.1684e-05', 'price': '36140.0', 'user_id': 2349216, 'time': 1622919886.864827, 'deal_order_id': 37775496500, 'fee_alt': '0.0', 'fee_stock': 'USDT', 'market': 'BTCUSDT', 'role': 2, 'side': 2}]}}
