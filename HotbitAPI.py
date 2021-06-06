@@ -17,7 +17,7 @@ class HotbitAPI(object):
     def post_order(self, price, quantity, market, side, type):
         prec = self.precisions[market.replace('/', '')]
         price_ = str(round(price, prec[0]))
-        quantity_ = str(round(quantity, (prec[1].index('1') - 1) if '.' in prec[1] else len(prec[1])))
+        quantity_ = str(round(quantity, (prec[1].index('1') - 1) if '.' in prec[1] else (1 - len(prec[1]))))
         data = {
           'price': price_,
           'quantity': quantity_,
