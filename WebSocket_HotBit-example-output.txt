@@ -1,0 +1,86 @@
+🧢 pi@pPro18 ~/dragon/dragon/src (master)
+> ./WebSocket_HotBit.py
+
+WebSocket::aio_run
+WebSocket::aio_run Socket Connected
+KEEPALIVE
+
+WebSocket::aio_run task_message_send
+{'method': 'server.auth2', 'params': [2341316, 1633183637, 'web', 'B8..24'], 'id': 300}
+
+⚡️ {'error': None, 'result': {'status': 'success'}, 'id': 300}
+server.auth2 ✅
+🔑 Authenticated with HotBit server
+meow
+
+WebSocket::aio_run task_message_send
+{'method': 'asset.subscribe', 'params': ['BTC', 'USDT'], 'id': 43}
+
+WebSocket::aio_run task_message_send
+{'method': 'deals.subscribe', 'params': ['ETHUSDT', 'BTCUSDT'], 'id': 44}
+
+WebSocket::aio_run task_message_send
+{'method': 'order.subscribe', 'params': ['order', 'BTCUSDT'], 'id': 45}
+KEEPALIVE
+meow
+
+⚡️ {'error': None, 'result': {'status': 'success'}, 'id': 43}
+asset.subscribe ✅
+
+⚡️ {'error': None, 'result': {'status': 'success'}, 'id': 44}
+deals.subscribe ✅
+
+id: None deals.update 1623187664 ETHUSDT got 100 trades
+aiorun(): Got 100 Trade(s) for ETHUSDT
+
+id: None deals.update 1623187664 BTCUSDT got 100 trades
+aiorun(): Got 100 Trade(s) for BTCUSDT
+
+⚡️ {'error': None, 'result': {'status': 'success'}, 'id': 45}
+order.subscribe ✅
+
+id: None deals.update 1623187664 ETHUSDT got 1 trades
+aiorun(): Got 1 Trade(s) for ETHUSDT
+['0.02073']
+
+⚡️ order.update: 🟩 🟩 🟩
+{'maker_fee': '-0.0005', 'user': 2349216, 'id': 38284307595, 'type': 1, 'market': 'BTCUSDT', 'deal_money': '0.0335387', 'price': '38788.72', 'freeze': '0', 'side': 2, 'source': 'web', 'fee_stock': '', 'ctime': 1623187671.443738, 'deal_fee': '0.00002012322', 'mtime': 1623187671.443743, 'deal_stock': '0.000001', 'amount': '0.000001', 'taker_fee': '0.0006', 'left': '0', 'alt_fee': '0', 'deal_fee_alt': '0', 'status': 1}
+{'user_id': 2349216, 'id': 38284307595, 'status': 'COMPLETED', 'symbol': 'BTCUSDT', 'glyph': '\U0001f7e9', '_status': 1, 'deal_money': Decimal('0.0335387'), 'price': Decimal('38788.72'), 'frozen': Decimal('0'), 'deal_stock': Decimal('0.000001'), 'amount': Decimal('0.000001'), 'left': Decimal('0'), 'timestamp_creation': 1623187671.443738, 'timestamp_update': 1623187671.443743}
+
+⚡️ asset.update: {'method': 'asset.update', 'params': [{'BTC': {'available': '0.000023', 'freeze': '0'}}], 'id': None, 'ieo_use': '0'}
+💰 {'BTC': (Decimal('0.000023'), Decimal('0'))}
+
+⚡️ asset.update: {'method': 'asset.update', 'params': [{'USDT': {'available': '292.10624666', 'freeze': '0'}}], 'id': None, 'ieo_use': '0'}
+💰 {'USDT': (Decimal('292.10624666'), Decimal('0'))}
+
+id: None deals.update 1623187671 BTCUSDT got 1 trades
+aiorun(): Got 1 Trade(s) for BTCUSDT
+['0.000001']
+KEEPALIVE
+meow
+
+id: None deals.update 1623187676 BTCUSDT got 1 trades
+aiorun(): Got 1 Trade(s) for BTCUSDT
+['0.005032']
+
+id: None deals.update 1623187677 BTCUSDT got 1 trades
+aiorun(): Got 1 Trade(s) for BTCUSDT
+['0.24187']
+^C
+🔌  WebSocket::aio_run asyncio.CancelledError
+WebSocket::teardown
+/WebSocket::teardown
+/WebSocket::aio_run
+
+⛔️ WebSocket::worker Exception:
+Traceback (most recent call last):
+  File "./WebSocket-aio-3a-thread.py", line 53, in worker
+    self.loop.run_until_complete(self.root_task)
+  File "/usr/local/anaconda3/lib/python3.7/asyncio/base_events.py", line 579, in run_until_complete
+    return future.result()
+concurrent.futures._base.CancelledError
+None
+
+WebSocket::worker finally
+/worker
+ALL DONE
