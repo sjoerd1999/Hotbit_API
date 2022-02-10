@@ -30,7 +30,7 @@ Create an API instance:
 ```
 from HotbitAPI import HotbitAPI
 
-cookie = 'abc123abc123abc123' # Insert your key here
+cookie = '_uab_collina=162179400601847897156348; lang=en-US; _ga=GA1.....................................................' # Insert your cookie here
 hotbit = HotbitAPI(cookie)
 ```
 
