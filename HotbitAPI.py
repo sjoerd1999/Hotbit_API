@@ -1,17 +1,23 @@
 import requests
+import time
 
 class HotbitAPI(object):
-    def __init__(self, key):
+    def __init__(self, cookie):
         # Requests session is about 15ms faster than normal requests
         self.session = requests.Session()
         self.base_url = 'https://www.hotbit.io/v1'
         self.headers = {
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
             'referer': 'https://www.hotbit.io/',
-            'cookie': 'hotbit=' + key
+            'cookie': cookie
         }
         self.session.headers.update(self.headers)
+        print('Fetching precisions...')
         prec = self.session.get('https://api.hotbit.io/api/v1/market.list').json()['result']
         self.precisions = {p['name']: [p['money_prec'], p['min_amount']] for p in prec}
+        self.prices = {}
+        print('Fetching prices...')
+        self.updatePrices()
 
     # POST a buy or sell order
     def post_order(self, price, quantity, market, side, type):
@@ -27,7 +33,7 @@ class HotbitAPI(object):
           'hide': 'false',
           'use_discount': 'false'
         }
-        return self.session.post(self.base_url + '/order/create', data=data).json()
+        return self.session.post(self.base_url + '/order/create', data=data).text
 
     # Cancel an order (needs both market and order-id)
     def cancel_order(self, market, order_id):
@@ -91,3 +97,25 @@ class HotbitAPI(object):
             'numPerPage': page_size
         }
         return self.session.post(self.base_url + '/fund/history/query', data=data).json()
+
+    def updatePrices(self):
+        tickers = self.session.get('https://api.hotbit.io/api/v1/allticker').json()['ticker']
+        self.prices = {t['symbol'].replace('_', '/'): t['last'] for t in tickers}
+
+    def updatePricesThread(self):
+        while True:
+            self.updatePrices()
+            time.sleep(0.5)
+
+    def buy(self, symbol, tot_usdt, mult):
+        price = float(self.prices[symbol]) * mult
+        quantity = tot_usdt / price
+        print('BUY:', symbol, price, quantity)
+        buy_ = self.post_order(price=price, quantity=quantity, market=symbol, side='BUY', type='LIMIT')
+        print(buy_)
+        return price, quantity
+
+    def sell(self, symbol, price, quantity):
+        print('SELL:', symbol, price, quantity)
+        sell_ = self.post_order(price=price, quantity=quantity, market=symbol, side='SELL', type='LIMIT')
+        print(sell_)
