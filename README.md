@@ -16,7 +16,7 @@ Go to https://www.hotbit.io/, make sure you're logged in
 
 -Search for the 'info?platform=web' request in the left bar, and select it
 
--Go to the 'header' tab, scroll down a bit, and copy the code after 'hotbit=' in the 'cookie' field. 
+-Go to the 'header' tab, scroll down a bit, and copy the FULL COOKIE
 
 This will be your personal 'API' key, keep this private.
 ![image](https://user-images.githubusercontent.com/35689067/120799363-ec6ad280-c53e-11eb-88a9-1c16503bcfba.png)
@@ -30,8 +30,8 @@ Create an API instance:
 ```
 from HotbitAPI import HotbitAPI
 
-key = 'abc123abc123abc123' # Insert your key here
-hotbit = HotbitAPI(key)
+cookie = 'abc123abc123abc123' # Insert your key here
+hotbit = HotbitAPI(cookie)
 ```
 
 Methods:
