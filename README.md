@@ -34,6 +34,8 @@ cookie = '_uab_collina=162179400601847897156348; lang=en-US; _ga=GA1............
 hotbit = HotbitAPI(cookie)
 ```
 
+(You may need to update 'User Agent' in the API to match the user agent of your browser)
+
 Methods:
 
 ```
